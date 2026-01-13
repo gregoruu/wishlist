@@ -1,0 +1,71 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  email     String    @unique
+  password  String
+  name      String
+  address   String?
+  createdAt DateTime  @default(now())
+
+  wishlists        Wishlist[]
+  orders           Order[]
+  sharedWishlists  WishlistSharedUser[]
+}
+
+
+model Wishlist {
+  id          Int              @id @default(autoincrement())
+  ownerId     Int
+  title       String
+  description String?
+  createdAt   DateTime         @default(now())
+
+  owner       User             @relation(fields: [ownerId], references: [id])
+  items       WishlistItem[]
+  sharedUsers WishlistSharedUser[]
+}
+
+model WishlistItem {
+  id          Int       @id @default(autoincrement())
+  wishlistId  Int
+  name        String
+  price       Decimal?
+  description String?
+  link        String?
+  image       String?
+  purchased   Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+
+  wishlist    Wishlist  @relation(fields: [wishlistId], references: [id])
+  order       Order?
+}
+
+model WishlistSharedUser {
+  id         Int      @id @default(autoincrement())
+  wishlistId Int
+  userId     Int
+
+  wishlist   Wishlist @relation(fields: [wishlistId], references: [id])
+  user       User     @relation(fields: [userId], references: [id])
+
+  @@unique([wishlistId, userId])
+}
+
+model Order {
+  id        Int       @id @default(autoincrement())
+  itemId    Int       @unique
+  buyerId   Int
+  message   String?
+  paid      Boolean   @default(false)
+  createdAt DateTime  @default(now())
+
+  item      WishlistItem @relation(fields: [itemId], references: [id])
+  buyer     User         @relation(fields: [buyerId], references: [id])
+}
