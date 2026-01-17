@@ -19,6 +19,19 @@ export const useUserStore = defineStore('user', {
     logout() {
       this.user = null
       this.token = null
+      fetch('http://localhost:3000/api/logout', {
+        method: 'POST',
+        credentials: 'include'
+      })
+    },
+
+    restoreSession() {
+      const token = localStorage.getItem('authToken')
+      const user = localStorage.getItem('user')
+      
+      if (token && user) {
+        this.login(JSON.parse(user), token)
+      }
     }
   }
 })

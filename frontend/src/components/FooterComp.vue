@@ -13,7 +13,7 @@
 
 <style scoped>
 .footer {
-  background: #1e1e1e;
+  background: black;
   color: #ccc;
   padding: 20px 0;
   margin-top: 60px;

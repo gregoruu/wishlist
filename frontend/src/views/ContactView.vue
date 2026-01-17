@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script setup>
 import LogInNavbar from '@/components/LogInNavbar.vue';
 
 </script>

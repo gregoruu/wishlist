@@ -8,11 +8,10 @@ const userStore = useUserStore()
 <template>
   <nav class="navbar">
     <div class="nav-left">
-      <RouterLink to="/" class="logo">Wishlist</RouterLink>
+      <RouterLink to="/wishlists" class="logo">Wishlist</RouterLink>
     </div>
 
     <div class="nav-right">
-      <RouterLink to="/" class="nav-link">Home</RouterLink>
       <RouterLink to="/wishlists" class="nav-link">My Wishlists</RouterLink>
       <button class="logout-btn" @click="userStore.logout">Logout</button>
     </div>
