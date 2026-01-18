@@ -1,8 +1,16 @@
 <script setup>
+import { ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useUserStore } from '../stores/user'
+import AddWishlistModal from './AddWishlistModal.vue'
 
 const userStore = useUserStore()
+const showModal = ref(false)
+
+const handleWishlistCreated = () => {
+  window.location.reload()
+}
+
 </script>
 
 <template>
@@ -12,10 +20,16 @@ const userStore = useUserStore()
     </div>
 
     <div class="nav-right">
+			<button class="add-btn" @click="showModal = true">Add Wishlist</button>
       <RouterLink to="/wishlists" class="nav-link">My Wishlists</RouterLink>
       <button class="logout-btn" @click="userStore.logout">Logout</button>
     </div>
   </nav>
+	<AddWishlistModal 
+    v-if="showModal" 
+    @close="showModal = false"
+    @created="handleWishlistCreated"
+  />
 </template>
 
 <style scoped>
@@ -63,5 +77,21 @@ const userStore = useUserStore()
 
 .logout-btn:hover {
   color: white;
+}
+
+.add-btn {
+  background: #1e1e1e;
+  color: white;
+  border: 2px solid white;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+  transition: 0.2s;
+}
+
+.add-btn:hover {
+  background: #333;
 }
 </style>

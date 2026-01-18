@@ -1,16 +1,32 @@
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useUserStore } from '@/stores/user'
 import WishlistBlock from '../components/WishlistBlock.vue'
 import NavBar from '@/components/NavBar.vue'
 
 const wishlists = ref([])
+const userStore = useUserStore()
+const loading = ref(true)
+const error = ref('')
 
 onMounted(async () => {
-	try {
-    const res = await fetch('http://localhost:3000/api/wishlists')
-    wishlists.value = await res.json()
+  try {
+    const response = await fetch('http://localhost:3000/api/wishlists', {
+      headers: {
+        'Authorization': `Bearer ${userStore.token}`
+      },
+      credentials: 'include'
+    })
+
+    if (!response.ok) {
+      throw new Error('Failed to load wishlists')
+    }
+
+    wishlists.value = await response.json()
   } catch (err) {
-    console.log(err.message)
+    error.value = err.message
+  } finally {
+    loading.value = false
   }
 })
 </script>

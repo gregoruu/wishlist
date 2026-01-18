@@ -14,15 +14,21 @@ export const useUserStore = defineStore('user', {
     login(user, token) {
       this.user = user
       this.token = token
+			localStorage.setItem('authToken', token)
+  		localStorage.setItem('user', JSON.stringify(user))
     },
 
     logout() {
       this.user = null
       this.token = null
+			localStorage.removeItem('authToken')
+  		localStorage.removeItem('user')
       fetch('http://localhost:3000/api/logout', {
         method: 'POST',
         credentials: 'include'
-      })
+      }).then(() => {
+				window.location.href = '/'
+			})
     },
 
     restoreSession() {
