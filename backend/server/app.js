@@ -335,4 +335,149 @@ app.post('/api/wishlists/:id/items', authenticateToken, async (req, res) => {
   }
 })
 
+app.get('/api/wishlists/:id', authenticateToken, async (req, res) => {
+  try {
+    const wishlistId = parseInt(req.params.id)
+    
+    const wishlist = await prisma.wishlist.findUnique({
+      where: { id: wishlistId },
+      include: {
+        items: {
+          orderBy: { createdAt: 'desc' }
+        }
+      }
+    })
+
+    if (!wishlist) {
+      return res.status(404).json({ error: 'Wishlist not found' })
+    }
+
+    if (wishlist.ownerId !== req.user.userId) {
+      return res.status(403).json({ error: 'Access denied' })
+    }
+
+    res.json(wishlist)
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: 'Server error' })
+  }
+})
+
+app.put('/api/wishlists/:id', authenticateToken, async (req, res) => {
+  try {
+    const wishlistId = parseInt(req.params.id)
+    const { title, description } = req.body
+
+    const wishlist = await prisma.wishlist.findUnique({
+      where: { id: wishlistId }
+    })
+
+    if (!wishlist) {
+      return res.status(404).json({ error: 'Wishlist not found' })
+    }
+
+    if (wishlist.ownerId !== req.user.userId) {
+      return res.status(403).json({ error: 'Access denied' })
+    }
+
+    const updated = await prisma.wishlist.update({
+      where: { id: wishlistId },
+      data: {
+        title: title || wishlist.title,
+        description: description !== undefined ? description : wishlist.description
+      }
+    })
+
+    res.json(updated)
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: 'Server error' })
+  }
+})
+
+app.delete('/api/wishlists/:id', authenticateToken, async (req, res) => {
+  try {
+    const wishlistId = parseInt(req.params.id)
+
+    const wishlist = await prisma.wishlist.findUnique({
+      where: { id: wishlistId }
+    })
+
+    if (!wishlist) {
+      return res.status(404).json({ error: 'Wishlist not found' })
+    }
+
+    if (wishlist.ownerId !== req.user.userId) {
+      return res.status(403).json({ error: 'Access denied' })
+    }
+
+    await prisma.wishlist.delete({
+      where: { id: wishlistId }
+    })
+
+    res.json({ message: 'Wishlist deleted' })
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: 'Server error' })
+  }
+})
+
+app.delete('/api/wishlists/:wishlistId/items/:itemId', authenticateToken, async (req, res) => {
+  try {
+    const wishlistId = parseInt(req.params.wishlistId)
+    const itemId = parseInt(req.params.itemId)
+
+    const wishlist = await prisma.wishlist.findUnique({
+      where: { id: wishlistId }
+    })
+
+    if (!wishlist || wishlist.ownerId !== req.user.userId) {
+      return res.status(403).json({ error: 'Access denied' })
+    }
+
+    await prisma.wishlistItem.delete({
+      where: { id: itemId }
+    })
+
+    res.json({ message: 'Item deleted' })
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: 'Server error' })
+  }
+})
+
+app.patch('/api/wishlists/:wishlistId/items/:itemId', authenticateToken, async (req, res) => {
+  try {
+    const wishlistId = parseInt(req.params.wishlistId)
+    const itemId = parseInt(req.params.itemId)
+    const { purchased, name, description, price, link } = req.body
+
+    const wishlist = await prisma.wishlist.findUnique({
+      where: { id: wishlistId }
+    })
+
+    if (!wishlist || wishlist.ownerId !== req.user.userId) {
+      return res.status(403).json({ error: 'Access denied' })
+    }
+
+    const updateData = {}
+    if (purchased !== undefined) updateData.purchased = purchased
+    if (name !== undefined) updateData.name = name
+    if (description !== undefined) updateData.description = description
+    if (price !== undefined) updateData.price = parseFloat(price)
+    if (link !== undefined) updateData.link = link
+
+    const updated = await prisma.wishlistItem.update({
+      where: { id: itemId },
+      data: updateData
+    })
+
+    res.json(updated)
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: 'Server error' })
+  }
+})
+
+
 export default app

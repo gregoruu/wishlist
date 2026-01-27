@@ -6,6 +6,8 @@ import RegisterView from '@/views/RegisterView.vue'
 import WishlistView from '@/views/WishlistView.vue'
 import SharedView from '@/views/SharedView.vue'
 import ContactView from '@/views/ContactView.vue'
+import { commonjs } from 'globals'
+import WishlistDetailView from '@/views/WishlistDetailView.vue'
 
 const routes = [
   { path: '/', component: HomeView },
@@ -21,7 +23,11 @@ const routes = [
     component: SharedView,
     meta: { requiresAuth: true }
   },
-  { path: '/contact', component: ContactView }
+  { path: '/contact', component: ContactView },
+	{ path: '/wishlists/:id',
+		component: WishlistDetailView,
+		meta: {requiresAuth: true }
+	}
 ]
 
 const router = createRouter({

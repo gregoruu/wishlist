@@ -1,15 +1,11 @@
 <script setup>
-import { ref, defineEmits } from 'vue'
-import { useUserStore } from '@/stores/user'
+import { ref } from 'vue'
+
+const props = defineProps({
+  wishlistId: [String, Number]
+})
 
 const emit = defineEmits(['close', 'created'])
-const userStore = useUserStore()
-
-const step = ref(1)
-const wishlistData = ref({
-  title: '',
-  description: ''
-})
 
 const itemUrl = ref('')
 const itemData = ref({
@@ -20,10 +16,8 @@ const itemData = ref({
   image: ''
 })
 
-const items = ref([])
 const loading = ref(false)
 const error = ref('')
-const createdWishlistId = ref(null)
 const showManualForm = ref(false)
 
 const toggleManualForm = () => {
@@ -80,81 +74,27 @@ const parseUrl = async () => {
   }
 }
 
-const addItem = () => {
+const saveItem = async () => {
   if (!itemData.value.name) {
     error.value = 'Item name is required'
     return
   }
 
-  items.value.push({ ...itemData.value })
-  
-  itemUrl.value = ''
-  itemData.value = {
-    name: '',
-    price: '',
-    description: '',
-    link: '',
-    image: ''
-  }
-  error.value = ''
-}
-
-const removeItem = (index) => {
-  items.value.splice(index, 1)
-}
-
-const createWishlist = async () => {
-  if (!wishlistData.value.title) {
-    error.value = 'Wishlist title is required'
-    return
-  }
-
   loading.value = true
   error.value = ''
 
   try {
-    const wishlistResponse = await fetch('http://localhost:3000/api/wishlists', {
+    const response = await fetch(`http://localhost:3000/api/wishlists/${props.wishlistId}/items`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
       credentials: 'include',
-      body: JSON.stringify(wishlistData.value)
+      body: JSON.stringify(itemData.value)
     })
 
-    if (!wishlistResponse.ok) {
-      throw new Error('Failed to create wishlist')
-    }
-
-    const wishlist = await wishlistResponse.json()
-    createdWishlistId.value = wishlist.id
-    
-    step.value = 2
-  } catch (err) {
-    error.value = err.message
-  } finally {
-    loading.value = false
-  }
-}
-
-const saveItems = async () => {
-  loading.value = true
-  error.value = ''
-
-  try {
-    for (const item of items.value) {
-      const response = await fetch(`http://localhost:3000/api/wishlists/${createdWishlistId.value}/items`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include',
-        body: JSON.stringify(item)
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to add item')
-      }
+    if (!response.ok) {
+      throw new Error('Failed to add item')
     }
 
     emit('created')
@@ -172,39 +112,11 @@ const saveItems = async () => {
     <div class="modal">
       <button class="close-btn" @click="$emit('close')">×</button>
       
-      <h2 v-if="step === 1">Create New Wishlist</h2>
-      <h2 v-else>Add Items to Wishlist</h2>
+      <h2>Add Item</h2>
 
       <div v-if="error" class="error-message">{{ error }}</div>
 
-      <div v-if="step === 1" class="form">
-        <div class="form-group">
-          <label for="title">Wishlist Title *</label>
-          <input
-            id="title"
-            v-model="wishlistData.title"
-            type="text"
-            placeholder="e.g., Birthday 2026"
-            required
-          />
-        </div>
-
-        <div class="form-group">
-          <label for="description">Description</label>
-          <textarea
-            id="description"
-            v-model="wishlistData.description"
-            placeholder="Optional description..."
-            rows="3"
-          ></textarea>
-        </div>
-
-        <button @click="createWishlist" class="btn primary" :disabled="loading">
-          {{ loading ? 'Creating...' : 'Next' }}
-        </button>
-      </div>
-
-      <div v-else class="form">
+      <div class="form">
         <div v-if="!showManualForm" class="form-group">
           <label for="url">Paste Item URL</label>
           <div class="url-input-group">
@@ -212,7 +124,7 @@ const saveItems = async () => {
               id="url"
               v-model="itemUrl"
               type="url"
-              placeholder="https://example.com/product"
+              placeholder="https://..."
             />
             <button @click="parseUrl" class="btn secondary" :disabled="loading">
               {{ loading ? 'Parsing...' : 'Parse' }}
@@ -274,8 +186,6 @@ const saveItems = async () => {
               placeholder="https://..."
             />
           </div>
-
-          <button @click="addItem" class="btn primary">Add to List</button>
         </div>
 
         <div v-if="itemData.name && !showManualForm" class="item-preview">
@@ -285,25 +195,13 @@ const saveItems = async () => {
             <input v-model="itemData.price" placeholder="Price" />
             <textarea v-model="itemData.description" placeholder="Description" rows="2"></textarea>
           </div>
-          <button @click="addItem" class="btn primary">Add to List</button>
-        </div>
-
-        <div v-if="items.length > 0" class="items-list">
-          <h3>Items ({{ items.length }})</h3>
-          <div v-for="(item, index) in items" :key="index" class="item-card">
-            <img v-if="item.image" :src="item.image" alt="" />
-            <div class="item-info">
-              <strong>{{ item.name }}</strong>
-              <span v-if="item.price">{{ item.price }} €</span>
-            </div>
-            <button @click="removeItem(index)" class="btn-remove">X</button>
-          </div>
         </div>
 
         <div class="modal-actions">
-          <button v-if="items.length > 0" @click="saveItems" class="btn primary" :disabled="loading">
-            {{ loading ? 'Saving...' : 'Save & Finish' }}
+          <button v-if="itemData.name" @click="saveItem" class="btn primary" :disabled="loading">
+            {{ loading ? 'Adding...' : 'Add Item' }}
           </button>
+          <button @click="$emit('close')" class="btn secondary">Cancel</button>
         </div>
       </div>
     </div>
@@ -373,6 +271,7 @@ input, textarea {
   border: 2px solid #ddd;
   border-radius: 8px;
   font-size: 16px;
+  font-family: inherit;
 }
 
 input:focus, textarea:focus {
@@ -393,26 +292,27 @@ input:focus, textarea:focus {
   padding: 12px 24px;
   border-radius: 8px;
   font-size: 16px;
+  font-weight: 600;
   cursor: pointer;
   border: none;
   transition: 0.2s;
 }
 
-.primary {
+.btn.primary {
   background: #1e1e1e;
   color: white;
 }
 
-.primary:hover:not(:disabled) {
+.btn.primary:hover:not(:disabled) {
   background: #333;
 }
 
-.secondary {
+.btn.secondary {
   background: #e0e0e0;
   color: #1e1e1e;
 }
 
-.secondary:hover {
+.btn.secondary:hover {
   background: #d0d0d0;
 }
 
@@ -421,75 +321,26 @@ input:focus, textarea:focus {
   cursor: not-allowed;
 }
 
-.item-preview {
-  border: 2px solid #e0e0e0;
-  padding: 15px;
-  border-radius: 8px;
+.image-preview {
   display: flex;
-  gap: 15px;
-	align-items: center;
-}
-
-.item-preview img {
-  width: 80px;
-  height: 80px;
-  object-fit: cover;
-  border-radius: 4px;
-}
-
-.item-details {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.items-list {
-  margin-top: 20px;
-}
-
-.items-list h3 {
-  margin-bottom: 10px;
-  color: #1e1e1e;
-}
-
-.item-card {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+  justify-content: center;
   padding: 10px;
-  border: 1px solid #e0e0e0;
+  background: #f7f7f7;
   border-radius: 8px;
-  margin-bottom: 10px;
 }
 
-.item-card img {
-  width: 50px;
-  height: 50px;
-  object-fit: cover;
+.image-preview img {
+  max-width: 200px;
+  max-height: 200px;
+  object-fit: contain;
   border-radius: 4px;
-}
-
-.item-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.btn-remove {
-  background: none;
-  border: none;
-  font-size: 24px;
-  cursor: pointer;
-  color: #c33;
 }
 
 .modal-actions {
   display: flex;
   gap: 10px;
   justify-content: flex-end;
-  margin-top: 20px;
+  margin-top: 10px;
 }
 
 .error-message {
@@ -517,5 +368,28 @@ input:focus, textarea:focus {
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+.item-preview {
+  border: 2px solid #e0e0e0;
+  padding: 15px;
+  border-radius: 8px;
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.item-preview img {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.item-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 </style>

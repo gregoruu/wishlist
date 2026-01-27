@@ -43,7 +43,7 @@ model WishlistItem {
   purchased   Boolean   @default(false)
   createdAt   DateTime  @default(now())
 
-  wishlist    Wishlist  @relation(fields: [wishlistId], references: [id])
+  wishlist    Wishlist  @relation(fields: [wishlistId], references: [id], onDelete: Cascade)
   order       Order?
 }
 
@@ -52,7 +52,7 @@ model WishlistSharedUser {
   wishlistId Int
   userId     Int
 
-  wishlist   Wishlist @relation(fields: [wishlistId], references: [id])
+  wishlist   Wishlist @relation(fields: [wishlistId], references: [id], onDelete: Cascade)
   user       User     @relation(fields: [userId], references: [id])
 
   @@unique([wishlistId, userId])
