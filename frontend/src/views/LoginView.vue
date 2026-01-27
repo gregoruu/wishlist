@@ -38,7 +38,7 @@ const handleLogin = async () => {
       throw new Error(data.error || 'Login failed')
     }
 
-    userStore.login(data.user, data.token)
+    userStore.login(data.user, null)
     router.push('/wishlists')
   } catch (err) {
     error.value = err.message

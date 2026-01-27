@@ -53,7 +53,7 @@ const handleRegister = async () => {
       throw new Error(data.error || 'Registration failed')
     }
 
-    userStore.login(data.user, data.token)
+    userStore.login(data.user, null)
 
     router.push('/wishlists')
   } catch (err) {

@@ -38,8 +38,7 @@ const parseUrl = async () => {
     const response = await fetch('http://localhost:3000/api/parse-url', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${userStore.token}`
+        'Content-Type': 'application/json'
       },
       credentials: 'include',
       body: JSON.stringify({ url: itemUrl.value })
@@ -101,8 +100,7 @@ const createWishlist = async () => {
     const wishlistResponse = await fetch('http://localhost:3000/api/wishlists', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${userStore.token}`
+        'Content-Type': 'application/json'
       },
       credentials: 'include',
       body: JSON.stringify(wishlistData.value)
@@ -132,8 +130,7 @@ const saveItems = async () => {
       const response = await fetch(`http://localhost:3000/api/wishlists/${createdWishlistId.value}/items`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${userStore.token}`
+          'Content-Type': 'application/json'
         },
         credentials: 'include',
         body: JSON.stringify(item)

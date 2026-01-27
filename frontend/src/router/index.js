@@ -29,12 +29,15 @@ const router = createRouter({
   routes
 })
 
-router.beforeEach((to, from, next) => {
-  const userStore = useUserStore()
+let sessionInitialized = false
 
-	if (!userStore.token) {
-		userStore.restoreSession()
-	}
+router.beforeEach(async (to, from, next) => {
+  const userStore = useUserStore()
+  
+  if (!sessionInitialized) {
+    await userStore.restoreSession()
+    sessionInitialized = true
+  }
   
   if (to.meta.requiresAuth && !userStore.isLoggedIn) {
     next('/login')

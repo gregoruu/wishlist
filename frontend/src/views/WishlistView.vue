@@ -12,9 +12,6 @@ const error = ref('')
 onMounted(async () => {
   try {
     const response = await fetch('http://localhost:3000/api/wishlists', {
-      headers: {
-        'Authorization': `Bearer ${userStore.token}`
-      },
       credentials: 'include'
     })
 

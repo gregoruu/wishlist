@@ -15,7 +15,7 @@ app.use(cors({
 app.use(express.json())
 app.use(cookieParser())
 
-const JWT_SECRET = process.env.JWT_SECRET || 'strongestsecretKEY'
+const JWT_SECRET = process.env.JWT_SECRET
 
 const authenticateToken = (req, res, next) => {
   const token = req.cookies.authToken || req.headers['authorization']?.split(' ')[1]
@@ -91,9 +91,10 @@ app.post('/api/register', async (req, res) => {
 
     res.cookie('authToken', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 2 * 24 * 60 * 60 * 1000
+      secure: true,
+      sameSite: 'strict',
+      maxAge: 2 * 24 * 60 * 60 * 1000,
+      path: '/'
     })
 
     res.status(201).json({
@@ -102,8 +103,7 @@ app.post('/api/register', async (req, res) => {
         email: user.email,
         name: user.name,
         address: user.address
-      },
-      token
+      }
     })
   } catch (err) {
     console.error(err)
@@ -137,9 +137,10 @@ app.post('/api/login', async (req, res) => {
 
     res.cookie('authToken', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 2 * 24 * 60 * 60 * 1000
+      secure: true,
+      sameSite: 'strict',
+      maxAge: 2 * 24 * 60 * 60 * 1000,
+      path: '/'
     })
 
     res.json({
@@ -148,8 +149,7 @@ app.post('/api/login', async (req, res) => {
         email: user.email,
         name: user.name,
         address: user.address
-      },
-      token
+      }
     })
   } catch (err) {
     console.error(err)
@@ -157,8 +157,36 @@ app.post('/api/login', async (req, res) => {
   }
 })
 
+app.get('/api/me', authenticateToken, async (req, res) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.userId },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        address: true
+      }
+    })
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' })
+    }
+
+    res.json({ user })
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: 'Server error' })
+  }
+})
+
 app.post('/api/logout', (req, res) => {
-  res.clearCookie('authToken')
+  res.clearCookie('authToken', {
+    httpOnly: true,
+    secure: true,
+    sameSite: 'strict',
+    path: '/'
+  })
   res.json({ message: 'Logged out' })
 })
 
